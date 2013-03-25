@@ -136,6 +136,10 @@
               <td><#if point.analogAverage??>${point.analogAverage}<#else>--</#if></td>
             </tr>
             <tr>
+              <td class="label"><@fmt key="common.stats.integral"/></td>
+              <td><#if point.analogIntegral??>${point.analogIntegral}<#else>--</#if></td>
+            </tr>
+            <tr>
               <td class="label"><@fmt key="common.stats.sum"/></td>
               <td>${point.analogSum}</td>
             </tr>

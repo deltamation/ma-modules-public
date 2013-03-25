@@ -409,6 +409,13 @@ public class ReportChartCreator {
                 return null;
             return textRenderer.getText(d, TextRenderer.HINT_SPECIFIC);
         }
+        
+        public String getAnalogIntegral() {
+            Double d = ((AnalogStatistics) stats).getIntegral();
+            if (d == null)
+                return null;
+            return textRenderer.getText(d, TextRenderer.HINT_SPECIFIC);
+        }
 
         public String getAnalogSum() {
             return textRenderer.getText(((AnalogStatistics) stats).getSum(), TextRenderer.HINT_SPECIFIC);
