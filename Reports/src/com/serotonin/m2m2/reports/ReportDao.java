@@ -420,16 +420,20 @@ public class ReportDao extends BaseDao {
                     }
                 });
 
-        final ExportDataValue edv = new ExportDataValue();
+        //Removed due to issues with multistate charting downstream
+        //final ExportDataValue edv = new ExportDataValue();
         for (final ExportPointInfo point : pointInfos) {
             handler.startPoint(point);
 
-            edv.setReportPointId(point.getReportPointId());
+            //Removed and placed into query row mapper edv.setReportPointId(point.getReportPointId());
+            final int reportPointId = point.getReportPointId(); //For use within the rowcallbackhandler
             final int dataType = point.getDataType();
             ejt.query(REPORT_INSTANCE_DATA_SELECT + "where rd.reportInstancePointId=? order by rd.ts",
                     new Object[] { point.getReportPointId() }, new RowCallbackHandler() {
                         @Override
                         public void processRow(ResultSet rs) throws SQLException {
+                            //Create new EDV here to be used in lists and stats further downstream
+                            ExportDataValue edv = new ExportDataValue();
                             switch (dataType) {
                             case (DataTypes.NUMERIC):
                                 edv.setValue(new NumericValue(rs.getDouble(1)));
@@ -451,7 +455,7 @@ public class ReportDao extends BaseDao {
                             default:
                                 edv.setValue(null);
                             }
-
+                            edv.setReportPointId(reportPointId);
                             edv.setTime(rs.getLong(4));
                             edv.setAnnotation(BaseDao.readTranslatableMessage(rs, 5));
                             handler.pointData(edv);
