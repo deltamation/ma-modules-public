@@ -224,7 +224,17 @@ public class ReportWorkItem implements WorkItem {
     }
 
     private void addImage(EmailContent emailContent, String imagePath) {
-        emailContent.addInline(new EmailInline.FileInline(imagePath, Common.getWebPath(imagePath)));
+        String path;
+        
+        File override = new File(Common.MA_HOME + "/overrides/web" + imagePath);
+        if (override.exists()) {
+            path = override.getAbsolutePath();
+        }
+        else {
+            path = Common.getWebPath(imagePath);
+        }
+
+        emailContent.addInline(new EmailInline.FileInline(imagePath, path));
     }
 
     private void addFileAttachment(EmailContent emailContent, String name, File file) {
