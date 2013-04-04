@@ -300,6 +300,7 @@ public class ReportsDwr extends ModuleDwr {
             rp.setPointId(dp.getId());
             rp.setColour(dp.getChartColour());
             rp.setConsolidatedChart(true);
+            rp.setIndividualChart(true);
             rp.setPlotType(dp.getPlotType());
             report.getPoints().add(rp);
         }

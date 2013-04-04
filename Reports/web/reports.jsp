@@ -92,7 +92,8 @@
                 report.points[i].colour, 
                 report.points[i].weight,
                 report.points[i].plotType,
-                report.points[i].consolidatedChart);
+                report.points[i].consolidatedChart,
+                report.points[i].individualChart);
         $set("includeEvents", report.includeEvents);
         $set("includeUserComments", report.includeUserComments);
         $set("dateRangeType", report.dateRangeType);
@@ -137,7 +138,7 @@
     
     function addPointToReport(pointId) {
         if (!reportContainsPoint(pointId)) {
-            addToReportPointsArray(pointId, "", 1, "", true);
+            addToReportPointsArray(pointId, "", 1, "", true, true);
             writeReportPointsArray();
         }
     }
@@ -146,7 +147,7 @@
         return getElement(reportPointsArray, pointId, "pointId") != null;
     }
     
-    function addToReportPointsArray(pointId, colour, weight, plotType, consolidatedChart) {
+    function addToReportPointsArray(pointId, colour, weight, plotType, consolidatedChart, individualChart) {
         var data = getPointData(pointId);
         if (data) {
             data.fancyName = "<span class='disabled'>"+ data.name +"</span>";
@@ -159,7 +160,8 @@
                 colour : !colour ? (!data.chartColour ? "" : data.chartColour) : colour,
                 weight : weight,
                 plotType : !plotType ? (!data.plotType ? <c:out value="<%= Integer.toString(DataPointVO.PlotTypes.STEP) %>" /> : data.plotType) : plotType,
-                consolidatedChart : consolidatedChart
+                consolidatedChart : consolidatedChart,
+                individualChart : individualChart
             });
         }
     }
@@ -204,6 +206,10 @@
 	                    	"</select>";
                     },
                     function(data) {
+                        return "<input type='checkbox'"+ (data.individualChart ? " checked='checked'" : "") +
+                                " onclick='updatePointIndividualChart("+ data.pointId +", this.checked)'/>";
+                    },
+                    function(data) {
                         return "<input type='checkbox'"+ (data.consolidatedChart ? " checked='checked'" : "") +
                                 " onclick='updatePointConsolidatedChart("+ data.pointId +", this.checked)'/>";
                     },
@@ -220,7 +226,7 @@
                     },
                     cellCreator:function(options) {
                         var td = document.createElement("td");
-                        if (options.cellNum == 5)
+                        if (options.cellNum == 5 || options.cellNum == 6)
                             td.align = "center";
                         return td;
                     }
@@ -250,6 +256,12 @@
         var item = getElement(reportPointsArray, pointId, "pointId");
         if (item)
             item["consolidatedChart"] = consolidatedChart;
+    }
+    
+    function updatePointIndividualChart(pointId, individualChart) {
+        var item = getElement(reportPointsArray, pointId, "pointId");
+        if (item)
+            item["individualChart"] = individualChart;
     }
     
     function removeFromReportPointsArray(pointId) {
@@ -439,7 +451,8 @@
                 colour: reportPointsArray[i].colour,
                 weight: reportPointsArray[i].weight,
                 plotType: reportPointsArray[i].plotType,
-                consolidatedChart: reportPointsArray[i].consolidatedChart
+                consolidatedChart: reportPointsArray[i].consolidatedChart,
+                individualChart: reportPointsArray[i].individualChart
             };
         return points;
     }
@@ -634,6 +647,7 @@
                       <td><fmt:message key="reports.colour"/></td>
                       <td><fmt:message key="reports.weight"/></td>
                       <td><fmt:message key="pointEdit.plotType"/></td>
+                      <td><fmt:message key="reports.individualChart"/></td>
                       <td><fmt:message key="reports.consolidatedChart"/></td>
                       <td></td>
                     </tr>

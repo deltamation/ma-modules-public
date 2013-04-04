@@ -101,10 +101,12 @@
     </tr>
   </table>
 
+  <#if individualChartExists>
   <h2><@fmt key="reports.statistics"/></h2>
   <table cellspacing="5">
     <#assign col = 1/>
     <#list points as point>
+      <#if point.individualChart>
       <#assign col = col + 1/>
       <#if col == 2><#assign col = 0/></#if>
       <#if col == 0><tr></#if>
@@ -182,9 +184,11 @@
       </td>
       
       <#if col == 1></tr></#if>
+      </#if>
     </#list>
     <#if col < 1></tr></#if>
   </table>
+  </#if>
   
   <#if chartName??>
     <h2><@fmt key="reports.consolidated"/></h2>

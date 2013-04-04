@@ -142,6 +142,8 @@ public class ReportChartCreator {
         model.put("NUMERIC", DataTypes.NUMERIC);
         model.put("IMAGE", DataTypes.IMAGE);
 
+        boolean individualChartExists = false;
+        
         // Create the individual point charts
         for (PointStatistics pointStat : pointStatistics) {
             PointTimeSeriesCollection ptsc = new PointTimeSeriesCollection(timeZone);
@@ -151,18 +153,25 @@ public class ReportChartCreator {
             else if (pointStat.getDiscreteTimeSeries() != null)
                 ptsc.addDiscreteTimeSeries(pointStat.getDiscreteTimeSeries().plainCopy());
 
-            if (ptsc.hasData()) {
-                if (inlinePrefix != null)
-                    model.put("chartName", inlinePrefix + pointStat.getChartName());
+            if (ptsc.hasData() && pointStat.isIndividualChart()) {
+                individualChartExists = true;
+                // Doesn't appear to be needed
+                // Causes consolidated chart to appear in emails even if no charts are ticked
+                //if (inlinePrefix != null)
+                //    model.put("chartName", inlinePrefix + pointStat.getChartName());
                 pointStat.setImageData(ImageChartUtils.getChartData(ptsc, POINT_IMAGE_WIDTH, POINT_IMAGE_HEIGHT,
                         reportInstance.getReportStartTime(), reportInstance.getReportEndTime()));
             }
         }
+        
+        model.put("individualChartExists", individualChartExists);
 
+        // create the consolidated chart
         PointTimeSeriesCollection ptsc = handler.getPointTimeSeriesCollection();
         if (ptsc.hasData()) {
-            if (inlinePrefix != null)
+            if (inlinePrefix != null) {
                 model.put("chartName", inlinePrefix + IMAGE_CONTENT_ID);
+            }
             else {
                 chartName = "r" + reportInstance.getId() + ".png";
                 // The path comes from the servlet path definition in web.xml.
@@ -298,6 +307,7 @@ public class ReportChartCreator {
         private NumericTimeSeries numericTimeSeries;
         private DiscreteTimeSeries discreteTimeSeries;
         private byte[] imageData;
+        boolean individualChart;
 
         public PointStatistics(int reportPointId) {
             this.reportPointId = reportPointId;
@@ -450,6 +460,14 @@ public class ReportChartCreator {
         public String getChartName() {
             return "reportPointChart" + reportPointId + ".png";
         }
+        
+        public boolean isIndividualChart() {
+            return individualChart;
+        }
+
+        public void setIndividualChart(boolean individualChart) {
+            this.individualChart = individualChart;
+        }
     }
 
     public static class StartsAndRuntimeWrapper {
@@ -520,12 +538,13 @@ public class ReportChartCreator {
         @Override
         public void startPoint(ExportPointInfo pointInfo) {
             donePoint();
-
+            
             point = new PointStatistics(pointInfo.getReportPointId());
             point.setName(pointInfo.getExtendedName());
             point.setDataType(pointInfo.getDataType());
             point.setDataTypeDescription(DataTypes.getDataTypeMessage(pointInfo.getDataType()).translate(translations));
             point.setTextRenderer(pointInfo.getTextRenderer());
+            point.setIndividualChart(pointInfo.isIndividualChart());
             if (pointInfo.getStartValue() != null)
                 point.setStartValue(pointInfo.getTextRenderer().getText(pointInfo.getStartValue(),
                         TextRenderer.HINT_SPECIFIC));
@@ -600,7 +619,7 @@ public class ReportChartCreator {
             else
                 throw new ShouldNeverHappenException("Unknown point data type: " + pointInfo.getDataType()
                         + " for point " + pointInfo.getReportPointId() + ", name=" + pointInfo.getExtendedName());
-
+            
             if (exportCsvStreamer != null)
                 exportCsvStreamer.startPoint(pointInfo);
         }
@@ -609,7 +628,9 @@ public class ReportChartCreator {
         public void pointData(ExportDataValue rdv) {
             if (quantizer != null)
                 quantizer.data(rdv);
-            point.getStats().addValueTime(rdv);
+            if (point != null) {
+                point.getStats().addValueTime(rdv);
+            }
             if (exportCsvStreamer != null)
                 exportCsvStreamer.pointData(rdv);
         }

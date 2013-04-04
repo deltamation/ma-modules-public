@@ -42,6 +42,7 @@ create table reportInstancePoints (
   colour nvarchar(6),
   weight float not null,
   consolidatedChart char(1) not null,
+  individualChart char(1) not null,
   plotType int not null,
   primary key (id)
 );

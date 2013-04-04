@@ -183,21 +183,24 @@ public class ReportDao extends BaseDao {
      */
     private static final String REPORT_INSTANCE_POINTS_INSERT = "insert into reportInstancePoints " //
             + "(reportInstanceId, deviceName, pointName, dataType, startValue, textRenderer, colour, weight,"
-            + " consolidatedChart, plotType) " //
-            + "values (?,?,?,?,?,?,?,?,?,?)";
+            + " consolidatedChart, individualChart, plotType) " //
+            + "values (?,?,?,?,?,?,?,?,?,?,?)";
 
     public static class PointInfo {
         private final DataPointVO point;
         private final String colour;
         private final float weight;
         private final boolean consolidatedChart;
+        private final boolean individualChart;
         private final int plotType;
 
-        public PointInfo(DataPointVO point, String colour, float weight, boolean consolidatedChart, int plotType) {
+        public PointInfo(DataPointVO point, String colour, float weight, boolean consolidatedChart,
+                boolean individualChart, int plotType) {
             this.point = point;
             this.colour = colour;
             this.weight = weight;
             this.consolidatedChart = consolidatedChart;
+            this.individualChart = individualChart;
             this.plotType = plotType;
         }
 
@@ -215,6 +218,10 @@ public class ReportDao extends BaseDao {
 
         public boolean isConsolidatedChart() {
             return consolidatedChart;
+        }
+        
+        public boolean isIndividualChart() {
+            return individualChart;
         }
 
         public int getPlotType() {
@@ -271,9 +278,10 @@ public class ReportDao extends BaseDao {
                     new Object[] { instance.getId(), point.getDeviceName(), name, dataType,
                             DataTypes.valueToString(startValue),
                             SerializationHelper.writeObject(point.getTextRenderer()), pointInfo.getColour(),
-                            pointInfo.getWeight(), boolToChar(pointInfo.isConsolidatedChart()), pointInfo.getPlotType() },
+                            pointInfo.getWeight(), boolToChar(pointInfo.isConsolidatedChart()),
+                            boolToChar(pointInfo.isIndividualChart()), pointInfo.getPlotType() },
                     new int[] { Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.BLOB,
-                            Types.VARCHAR, Types.FLOAT, Types.CHAR, Types.INTEGER });
+                            Types.VARCHAR, Types.FLOAT, Types.CHAR, Types.CHAR, Types.INTEGER });
 
             // Insert the reportInstanceData records
             String insertSQL = "insert into reportInstanceData " //
@@ -387,7 +395,7 @@ public class ReportDao extends BaseDao {
      * ordered), and sorted by time ascending.
      */
     private static final String REPORT_INSTANCE_POINT_SELECT = "select id, deviceName, pointName, dataType, " // 
-            + "startValue, textRenderer, colour, weight, consolidatedChart, plotType " //
+            + "startValue, textRenderer, colour, weight, consolidatedChart, individualChart, plotType " //
             + "from reportInstancePoints ";
     private static final String REPORT_INSTANCE_DATA_SELECT = "select rd.pointValue, rda.textPointValueShort, " //
             + "  rda.textPointValueLong, rd.ts, rda.sourceMessage "
@@ -415,6 +423,7 @@ public class ReportDao extends BaseDao {
                         rp.setColour(rs.getString(++i));
                         rp.setWeight(rs.getFloat(++i));
                         rp.setConsolidatedChart(charToBool(rs.getString(++i)));
+                        rp.setIndividualChart(charToBool(rs.getString(++i)));
                         rp.setPlotType(rs.getInt(++i));
                         return rp;
                     }
