@@ -156,6 +156,12 @@ public class ReportWorkItem implements WorkItem {
             // We are creating an email from the result. Create the content.
             final ReportChartCreator creator = new ReportChartCreator(translations, TimeZone.getDefault());
             creator.createContent(reportInstance, reportDao, inlinePrefix, reportConfig.isIncludeData());
+            
+            // dont send email if report is empty and no attachments
+            if (creator.isEmptyReport() && !reportConfig.isIncludeData()) {
+                reportDao.deleteReportInstance(reportInstance.getId(), user.getId());
+                return;
+            }
 
             // Create the to list
             Set<String> addresses = new MailingListDao().getRecipientAddresses(reportConfig.getRecipients(),

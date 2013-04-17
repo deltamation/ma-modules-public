@@ -91,6 +91,7 @@ public class ReportChartCreator {
     private File eventFile;
     private File commentFile;
     private List<PointStatistics> pointStatistics;
+    private boolean emptyReport = true;
 
     final Translations translations;
     final TimeZone timeZone;
@@ -164,6 +165,10 @@ public class ReportChartCreator {
             }
         }
         
+        if (individualChartExists) {
+            emptyReport = false;
+        }
+        
         model.put("individualChartExists", individualChartExists);
 
         // create the consolidated chart
@@ -180,6 +185,8 @@ public class ReportChartCreator {
 
             imageData = ImageChartUtils.getChartData(ptsc, true, IMAGE_WIDTH, IMAGE_HEIGHT,
                     reportInstance.getReportStartTime(), reportInstance.getReportEndTime());
+            
+            emptyReport = false;
         }
 
         List<EventInstance> events = null;
@@ -187,10 +194,14 @@ public class ReportChartCreator {
             events = reportDao.getReportInstanceEvents(reportInstance.getId());
             model.put("includeEvents", true);
             model.put("events", events);
+            
+            if (!events.isEmpty()) {
+                emptyReport = false;
+            }
         }
         else
             model.put("includeEvents", false);
-
+        
         List<ReportUserComment> comments = null;
         if (reportInstance.isIncludeUserComments()) {
             comments = reportDao.getReportInstanceUserComments(reportInstance.getId());
@@ -201,6 +212,10 @@ public class ReportChartCreator {
             for (ReportUserComment c : comments) {
                 if (c.getCommentType() == UserComment.TYPE_POINT)
                     pointComments.add(c);
+            }
+            
+            if (!pointComments.isEmpty()) {
+                emptyReport = false;
             }
 
             model.put("includeUserComments", true);
@@ -292,6 +307,10 @@ public class ReportChartCreator {
 
     public List<PointStatistics> getPointStatistics() {
         return pointStatistics;
+    }
+    
+    public boolean isEmptyReport() {
+        return emptyReport;
     }
 
     public class PointStatistics {
