@@ -1,0 +1,97 @@
+@page {
+  size: 297mm 210mm
+}
+
+body {
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: #000000;
+  background-color: #FFFFFF;
+  margin: 0px;
+  padding: 0px;
+}
+
+.bod {
+  margin: 10px;
+  padding: 5px;
+  background-color: #FFFFFF;
+}
+
+.label {
+  font-weight: bold;
+  text-align: right;
+  padding-right: 10px;
+}
+
+.stats {
+  background-color: #F0F0F0;
+  vertical-align: top;
+}
+
+.copyTitle {
+  font-size: 10px;
+}
+
+.statsRow {
+  page-break-after:always;
+}
+
+h2 {
+  page-break-before:always;
+}
+
+.nameRow {
+  background-color: #D0D0D0;
+}
+
+.nameRowAlt {
+  background-color: #B0B0B0;
+}
+
+.smallTitle {
+  color: #336699;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+img { border-style: none; }
+
+.rowHeader td, .smRowHeader td, .row td, .smRow td, .rowAlt td, .smRowAlt td, .rowAlt2 td {
+  font-size: 1em;
+}
+.rowHeader td, .smRowHeader td {
+  font-weight: bold;
+  color: #FFFFFF;
+  background-color: #1a5188;
+  text-align: center;
+    white-space: nowrap;
+}
+.rowHeader td {
+  padding: 3px 10px 3px 10px;
+}
+.smRowHeader td {
+  padding: 2px 3px 2px 3px;
+}
+a.rowHeaderLink, a.rowHeaderLink:visited, a.rowHeaderLink:link, a.rowHeaderLink:hover {
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+.row td, .smRow td, .rowAlt td, .smRowAlt td, .rowAlt2 td {
+  color: #000000;
+}
+.row td, .rowAlt td, .rowAlt2 td {
+  padding: 3px;
+}
+.smRow td, .smRowAlt td {
+  padding: 0px 3px 0px 3px;
+}
+.row td, .smRow td {
+  background-color: #F0F0F0;
+}
+.rowAlt td, .smRowAlt td {
+  background-color: #DCDCDC;
+}
+.rowAlt2 td {
+  background-color: #FFFFFF;
+}

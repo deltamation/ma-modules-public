@@ -14,6 +14,7 @@
     dojo.require("dijit.form.FilteringSelect");
     
     var allPointsArray = [];
+    var dataSourceArray = [];
     var reportPointsArray;
     var selectedReport;
     var emailRecipients;
@@ -22,6 +23,7 @@
         ReportsDwr.init(function(response) {
             hide("hourglass");
             allPointsArray = response.data.points;
+            dataSourceArray = response.data.datasources;
             dojo.forEach(allPointsArray, function(item) { item.fancyName = item.name; });
             
             emailRecipients = new mango.erecip.EmailRecipients("recipients",
@@ -56,7 +58,25 @@
                         this.reset();
                     }
                 }
-            }, "pointLookup");        
+            }, "pointLookup");
+            
+            // Create the datasource lookup
+            new dijit.form.FilteringSelect({
+                store: new dojo.store.Memory({ data: dataSourceArray }),
+                labelAttr: "name",
+                searchAttr: "name",
+                autoComplete: false,
+                style: "width: 254px;",
+                queryExpr: "*\${0}*",
+                highlightMatch: "all",
+                required: false,
+                onChange: function(point) {
+                    if (this.item) {
+                        addDataSourceToReport(this.item.id);
+                        this.reset();
+                    }
+                }
+            }, "datasourceLookup");
       });
     }
     
@@ -141,6 +161,17 @@
             addToReportPointsArray(pointId, "", 1, "", true, true);
             writeReportPointsArray();
         }
+    }
+    
+    function addDataSourceToReport(datasourceId) {
+        ReportsDwr.getPointsForDataSource(datasourceId, function(points) {
+            for (var i = 0; i < points.length; i++) {
+                if (!reportContainsPoint(points[i].id)) {
+                    addToReportPointsArray(points[i].id, "", 1, "", false, false);
+                }
+            }
+            writeReportPointsArray();
+        });
     }
     
     function reportContainsPoint(pointId) {
@@ -634,7 +665,7 @@
             <tr>
               <td class="formLabelRequired"><fmt:message key="common.points"/></td>
               <td class="formField">
-                <div id="pointLookup"></div>
+                <div id="pointLookup"></div><div id="datasourceLookup"></div>
                 
                 <table cellspacing="1">
                   <tbody id="reportPointsTableEmpty" style="display:none;">

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jfree.data.time.TimeSeries;
@@ -142,6 +143,17 @@ public class ReportChartCreator {
         model.put("MULTISTATE", DataTypes.MULTISTATE);
         model.put("NUMERIC", DataTypes.NUMERIC);
         model.put("IMAGE", DataTypes.IMAGE);
+        
+        String css;
+        try {
+            File cssFile = new File(Common.MA_HOME + "/overrides/web/modules/reports/web/reports.css");
+            if (!cssFile.exists())
+                cssFile = new File(Common.MA_HOME + "/web/modules/reports/web/reports.css");
+            css = FileUtils.readFileToString(cssFile);
+        } catch (IOException e) {
+            css = "";
+        }
+        model.put("css", css);
 
         boolean individualChartExists = false;
         

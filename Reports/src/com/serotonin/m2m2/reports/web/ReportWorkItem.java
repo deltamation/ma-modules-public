@@ -8,8 +8,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.zip.ZipEntry;
@@ -21,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
+import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.io.StreamUtils;
@@ -188,6 +192,49 @@ public class ReportWorkItem implements WorkItem {
             // Add optional images used by the template.
             for (String s : creator.getInlineImageList())
                 addImage(emailContent, s);
+            
+            File pdfFile;
+            OutputStream os;
+            try {
+                pdfFile = File.createTempFile("printable", ".pdf");
+                os = new FileOutputStream(pdfFile);
+            } catch (IOException e) {
+                pdfFile = null;
+                os = null;
+                LOG.error(e);
+            }
+            
+            if (os != null) {
+                ITextRenderer renderer = new ITextRenderer();
+                final ReportChartCreator pdfCreator = new ReportChartCreator(translations, TimeZone.getDefault());
+                pdfCreator.createContent(reportInstance, reportDao, null, reportConfig.isIncludeData());
+                
+                Map<String, byte[]> imageData = new HashMap<String, byte[]>();
+                imageData.put(pdfCreator.getChartName(), pdfCreator.getImageData());
+                for (ReportChartCreator.PointStatistics pointStatistics : pdfCreator.getPointStatistics())
+                    imageData.put(pointStatistics.getChartName(), pointStatistics.getImageData());
+                
+                PdfImageResolver callback = new PdfImageResolver(imageData);
+                callback.setSharedContext(renderer.getSharedContext());
+                renderer.getSharedContext().setUserAgentCallback(callback);
+                
+                String text = pdfCreator.getHtml();
+                renderer.setDocumentFromString(text);
+                //renderer.setDocument("http://localhost:8080/login.htm");
+                
+                boolean ok = true;
+                try {
+                    renderer.layout();
+                    renderer.createPDF(os, true);
+                    os.close();
+                } catch (Exception e) {
+                    LOG.error(e);
+                    ok = false;
+                }
+                
+                if (ok)
+                    addFileAttachment(emailContent, reportInstance.getName() + ".pdf", pdfFile);
+            }
 
             // Check if we need to attach the data.
             if (reportConfig.isIncludeData()) {
