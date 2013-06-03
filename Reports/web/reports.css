@@ -1,6 +1,21 @@
+/*
+ * Print styles
+ */
 @page {
   size: 297mm 210mm
 }
+
+.statsRow, img {
+  page-break-inside:avoid;
+}
+
+h1, h2, h3 {
+  page-break-after:avoid;
+}
+
+/*
+ * Display styles
+ */
 
 body {
   font-family: Verdana, Arial, Helvetica, sans-serif;
@@ -31,14 +46,6 @@ body {
 
 .copyTitle {
   font-size: 10px;
-}
-
-.statsRow {
-  page-break-after:always;
-}
-
-h2 {
-  page-break-before:always;
 }
 
 .nameRow {

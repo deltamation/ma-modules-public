@@ -75,12 +75,12 @@ public class ReportChartCreator {
     /**
      * This image width is specifically chosen such that the report will print on a single page width in landscape.
      */
-    private static final int IMAGE_WIDTH = 930;
-    private static final int IMAGE_HEIGHT = 400;
+    private static final int IMAGE_WIDTH = 960;
+    private static final int IMAGE_HEIGHT = 600;
     public static final String IMAGE_CONTENT_ID = "reportChart.png";
 
-    public static final int POINT_IMAGE_WIDTH = 440;
-    public static final int POINT_IMAGE_HEIGHT = 250; // 340
+    public static final int POINT_IMAGE_WIDTH = 480;
+    public static final int POINT_IMAGE_HEIGHT = 360; // 340
 
     String inlinePrefix;
     private String html;

@@ -165,6 +165,7 @@
   		<td><@fmt key="common.stats.count"/></td>
   	</tr>
     <#assign row = 1/>
+    <#assign hasNumeric = false />
     <#list points as point>
       <#if point.dataType == NUMERIC>
       <#assign row = row + 1/>
@@ -181,8 +182,12 @@
       <td>${point.analogCount}</td>
       
       </tr>
+      <#assign hasNumeric = true />
       </#if>
     </#list>
+    <#if !hasNumeric>
+    	<td colspan="7"><@fmt key="reports.numeric.empty"/></td>
+    </#if>
   </table>
   
   <h3><@fmt key="reports.multistatePoints"/></h3>
@@ -195,6 +200,7 @@
   	</tr>
     <#assign row = 1/>
     <#assign nameRow = 1/>
+    <#assign hasMultistate = false />
     <#list points as point>
     <#if point.dataType == BINARY || point.dataType == MULTISTATE>
     
@@ -216,8 +222,12 @@
 	      
 	      </tr>
       </#list>
+      <#assign hasMultistate = true />
     </#if>
     </#list>
+    <#if !hasMultistate>
+    	<td colspan="4"><@fmt key="reports.multistate.empty"/></td>
+    </#if>
   </table>
   
   <h3><@fmt key="reports.alphanumericPoints"/></h3>
@@ -227,6 +237,7 @@
   		<td><@fmt key="common.stats.count"/></td>
   	</tr>
     <#assign row = 1/>
+    <#assign hasAlphanumeric = false />
     <#list points as point>
       <#if point.dataType == ALPHANUMERIC || point.dataType == IMAGE>
       <#assign row = row + 1/>
@@ -238,8 +249,12 @@
         <td>${point.valueChangeCount}</td>
         
       </tr>
+      <#assign hasAlphanumeric = true />
       </#if>
     </#list>
+    <#if !hasAlphanumeric>
+    	<td colspan="2"><@fmt key="reports.alphanumeric.empty"/></td>
+    </#if>
   </table>
   </#if>
   
