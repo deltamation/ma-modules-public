@@ -665,7 +665,7 @@
             <tr>
               <td class="formLabelRequired"><fmt:message key="common.points"/></td>
               <td class="formField">
-                <div id="pointLookup"></div><div id="datasourceLookup"></div>
+                <div id="pointLookup"></div> <div id="datasourceLookup"></div>
                 
                 <table cellspacing="1">
                   <tbody id="reportPointsTableEmpty" style="display:none;">

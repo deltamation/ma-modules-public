@@ -36,6 +36,7 @@ import com.serotonin.m2m2.reports.ReportDao;
 import com.serotonin.m2m2.reports.vo.ReportInstance;
 import com.serotonin.m2m2.reports.vo.ReportVO;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.util.chart.DiscreteTimeSeries;
 import com.serotonin.m2m2.util.chart.ImageChartUtils;
@@ -576,9 +577,9 @@ public class ReportChartCreator {
             point.setDataTypeDescription(DataTypes.getDataTypeMessage(pointInfo.getDataType()).translate(translations));
             point.setTextRenderer(pointInfo.getTextRenderer());
             point.setIndividualChart(pointInfo.isIndividualChart());
-            if (pointInfo.getStartValue() != null)
-                point.setStartValue(pointInfo.getTextRenderer().getText(pointInfo.getStartValue(),
-                        TextRenderer.HINT_SPECIFIC));
+            DataValue startValue = pointInfo.getStartValue();
+            if (startValue != null)
+                point.setStartValue(pointInfo.getTextRenderer().getText(startValue, TextRenderer.HINT_SPECIFIC));
             pointStatistics.add(point);
 
             Color colour = null;
@@ -653,10 +654,18 @@ public class ReportChartCreator {
             
             if (exportCsvStreamer != null)
                 exportCsvStreamer.startPoint(pointInfo);
+            
+            // add start value to the data series
+            if (startValue != null)
+                pointData(new ExportDataValue(startValue, start));
         }
-
+        
+        private ExportDataValue lastValue = null;
+        
         @Override
         public void pointData(ExportDataValue rdv) {
+            lastValue = rdv;
+            
             if (quantizer != null)
                 quantizer.data(rdv);
             if (point != null) {
@@ -667,11 +676,17 @@ public class ReportChartCreator {
         }
 
         private void donePoint() {
+            // add end value to the data series
+            if (lastValue != null) {
+                long lastValueEndTime = end > System.currentTimeMillis() ? System.currentTimeMillis() : end;
+                pointData(new ExportDataValue(lastValue.getValue(), lastValueEndTime));
+            }
+            
             if (quantizer != null)
                 quantizer.done();
             if (point != null)
                 // Add in an end value to calculate stats until the end of the report. 
-                point.getStats().done(new PointValueTime(0D, end));
+                point.getStats().done(null);
         }
 
         @Override
