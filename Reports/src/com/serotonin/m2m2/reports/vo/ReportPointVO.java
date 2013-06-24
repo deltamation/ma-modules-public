@@ -17,6 +17,7 @@ public class ReportPointVO implements Serializable {
     private String colour;
     private float weight = 1;
     private boolean consolidatedChart;
+    private boolean individualChart;
     private int plotType;
 
     public int getPointId() {
@@ -50,6 +51,14 @@ public class ReportPointVO implements Serializable {
     public void setConsolidatedChart(boolean consolidatedChart) {
         this.consolidatedChart = consolidatedChart;
     }
+    
+    public boolean isIndividualChart() {
+        return individualChart;
+    }
+
+    public void setIndividualChart(boolean individualChart) {
+        this.individualChart = individualChart;
+    }
 
     public int getPlotType() {
         return plotType;
@@ -64,7 +73,7 @@ public class ReportPointVO implements Serializable {
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 3;
+    private static final int version = 4;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -73,6 +82,7 @@ public class ReportPointVO implements Serializable {
         SerializationHelper.writeSafeUTF(out, colour);
         out.writeFloat(weight);
         out.writeBoolean(consolidatedChart);
+        out.writeBoolean(individualChart);
         out.writeInt(plotType);
     }
 
@@ -99,6 +109,14 @@ public class ReportPointVO implements Serializable {
             colour = SerializationHelper.readSafeUTF(in);
             weight = in.readFloat();
             consolidatedChart = in.readBoolean();
+            plotType = in.readInt();
+        }
+        else if (ver == 4) {
+            pointId = in.readInt();
+            colour = SerializationHelper.readSafeUTF(in);
+            weight = in.readFloat();
+            consolidatedChart = in.readBoolean();
+            individualChart = in.readBoolean();
             plotType = in.readInt();
         }
     }

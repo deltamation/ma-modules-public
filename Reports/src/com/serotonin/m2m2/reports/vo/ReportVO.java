@@ -13,6 +13,9 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 
+import proguard.annotation.KeepName;
+import proguard.annotation.KeepPublicClassMemberNames;
+
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
@@ -21,6 +24,8 @@ import com.serotonin.util.SerializationHelper;
 /**
  * @author Matthew Lohbihler
  */
+@KeepName
+@KeepPublicClassMemberNames
 public class ReportVO implements Serializable {
     public static final int DATE_RANGE_TYPE_RELATIVE = 1;
     public static final int DATE_RANGE_TYPE_SPECIFIC = 2;

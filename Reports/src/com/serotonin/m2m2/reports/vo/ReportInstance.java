@@ -6,6 +6,9 @@ package com.serotonin.m2m2.reports.vo;
 
 import org.joda.time.DateTime;
 
+import proguard.annotation.KeepName;
+import proguard.annotation.KeepPublicClassMemberNames;
+
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.util.DateUtils;
@@ -14,6 +17,8 @@ import com.serotonin.m2m2.web.taglib.Functions;
 /**
  * @author Matthew Lohbihler
  */
+@KeepName
+@KeepPublicClassMemberNames
 public class ReportInstance {
     public static final int STATE_NOT_STARTED = 1;
     public static final int STATE_STARTED = 2;

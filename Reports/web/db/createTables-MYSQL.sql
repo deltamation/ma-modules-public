@@ -38,6 +38,7 @@ create table reportInstancePoints (
   colour varchar(6),
   weight double not null,
   consolidatedChart char(1) not null,
+  individualChart char(1) not null,
   plotType int not null,
   primary key (id)
 ) engine=InnoDB;

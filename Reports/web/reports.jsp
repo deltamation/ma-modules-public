@@ -14,6 +14,7 @@
     dojo.require("dijit.form.FilteringSelect");
     
     var allPointsArray = [];
+    var dataSourceArray = [];
     var reportPointsArray;
     var selectedReport;
     var emailRecipients;
@@ -22,6 +23,7 @@
         ReportsDwr.init(function(response) {
             hide("hourglass");
             allPointsArray = response.data.points;
+            dataSourceArray = response.data.datasources;
             dojo.forEach(allPointsArray, function(item) { item.fancyName = item.name; });
             
             emailRecipients = new mango.erecip.EmailRecipients("recipients",
@@ -56,7 +58,25 @@
                         this.reset();
                     }
                 }
-            }, "pointLookup");        
+            }, "pointLookup");
+            
+            // Create the datasource lookup
+            new dijit.form.FilteringSelect({
+                store: new dojo.store.Memory({ data: dataSourceArray }),
+                labelAttr: "name",
+                searchAttr: "name",
+                autoComplete: false,
+                style: "width: 254px;",
+                queryExpr: "*\${0}*",
+                highlightMatch: "all",
+                required: false,
+                onChange: function(point) {
+                    if (this.item) {
+                        addDataSourceToReport(this.item.id);
+                        this.reset();
+                    }
+                }
+            }, "datasourceLookup");
       });
     }
     
@@ -92,7 +112,8 @@
                 report.points[i].colour, 
                 report.points[i].weight,
                 report.points[i].plotType,
-                report.points[i].consolidatedChart);
+                report.points[i].consolidatedChart,
+                report.points[i].individualChart);
         $set("includeEvents", report.includeEvents);
         $set("includeUserComments", report.includeUserComments);
         $set("dateRangeType", report.dateRangeType);
@@ -137,16 +158,27 @@
     
     function addPointToReport(pointId) {
         if (!reportContainsPoint(pointId)) {
-            addToReportPointsArray(pointId, "", 1, "", true);
+            addToReportPointsArray(pointId, "", 1, "", true, true);
             writeReportPointsArray();
         }
+    }
+    
+    function addDataSourceToReport(datasourceId) {
+        ReportsDwr.getPointsForDataSource(datasourceId, function(points) {
+            for (var i = 0; i < points.length; i++) {
+                if (!reportContainsPoint(points[i].id)) {
+                    addToReportPointsArray(points[i].id, "", 1, "", false, false);
+                }
+            }
+            writeReportPointsArray();
+        });
     }
     
     function reportContainsPoint(pointId) {
         return getElement(reportPointsArray, pointId, "pointId") != null;
     }
     
-    function addToReportPointsArray(pointId, colour, weight, plotType, consolidatedChart) {
+    function addToReportPointsArray(pointId, colour, weight, plotType, consolidatedChart, individualChart) {
         var data = getPointData(pointId);
         if (data) {
             data.fancyName = "<span class='disabled'>"+ data.name +"</span>";
@@ -159,7 +191,8 @@
                 colour : !colour ? (!data.chartColour ? "" : data.chartColour) : colour,
                 weight : weight,
                 plotType : !plotType ? (!data.plotType ? <c:out value="<%= Integer.toString(DataPointVO.PlotTypes.STEP) %>" /> : data.plotType) : plotType,
-                consolidatedChart : consolidatedChart
+                consolidatedChart : consolidatedChart,
+                individualChart : individualChart
             });
         }
     }
@@ -204,6 +237,10 @@
 	                    	"</select>";
                     },
                     function(data) {
+                        return "<input type='checkbox'"+ (data.individualChart ? " checked='checked'" : "") +
+                                " onclick='updatePointIndividualChart("+ data.pointId +", this.checked)'/>";
+                    },
+                    function(data) {
                         return "<input type='checkbox'"+ (data.consolidatedChart ? " checked='checked'" : "") +
                                 " onclick='updatePointConsolidatedChart("+ data.pointId +", this.checked)'/>";
                     },
@@ -220,7 +257,7 @@
                     },
                     cellCreator:function(options) {
                         var td = document.createElement("td");
-                        if (options.cellNum == 5)
+                        if (options.cellNum == 5 || options.cellNum == 6)
                             td.align = "center";
                         return td;
                     }
@@ -250,6 +287,12 @@
         var item = getElement(reportPointsArray, pointId, "pointId");
         if (item)
             item["consolidatedChart"] = consolidatedChart;
+    }
+    
+    function updatePointIndividualChart(pointId, individualChart) {
+        var item = getElement(reportPointsArray, pointId, "pointId");
+        if (item)
+            item["individualChart"] = individualChart;
     }
     
     function removeFromReportPointsArray(pointId) {
@@ -439,7 +482,8 @@
                 colour: reportPointsArray[i].colour,
                 weight: reportPointsArray[i].weight,
                 plotType: reportPointsArray[i].plotType,
-                consolidatedChart: reportPointsArray[i].consolidatedChart
+                consolidatedChart: reportPointsArray[i].consolidatedChart,
+                individualChart: reportPointsArray[i].individualChart
             };
         return points;
     }
@@ -621,7 +665,7 @@
             <tr>
               <td class="formLabelRequired"><fmt:message key="common.points"/></td>
               <td class="formField">
-                <div id="pointLookup"></div>
+                <div id="pointLookup"></div> <div id="datasourceLookup"></div>
                 
                 <table cellspacing="1">
                   <tbody id="reportPointsTableEmpty" style="display:none;">
@@ -634,6 +678,7 @@
                       <td><fmt:message key="reports.colour"/></td>
                       <td><fmt:message key="reports.weight"/></td>
                       <td><fmt:message key="pointEdit.plotType"/></td>
+                      <td><fmt:message key="reports.individualChart"/></td>
                       <td><fmt:message key="reports.consolidatedChart"/></td>
                       <td></td>
                     </tr>

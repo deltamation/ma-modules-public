@@ -16,53 +16,9 @@
   <!-- Style -->
   <link rel="icon" href="images/favicon.ico"/>
   <link rel="shortcut icon" href="images/favicon.ico"/>
+  
   <style type="text/css">
-    .bod {
-      margin: 10px;
-      padding: 5px;
-      background-color: #FFFFFF;
-    }
-    .bod, td, th {
-      font-family: Verdana, Arial, Helvetica, sans-serif;
-      font-size: 11px;
-      color: #000000;
-    }
-    .pointName {
-      color: #804000;
-      font-size: 13px;
-      font-weight: bold;
-    }
-    .label {
-      font-weight: bold;
-      text-align: right;
-      padding-right: 10px;
-    }
-    .stats {
-      background-color: #F0F0F0;
-      vertical-align: top;
-    }
-    .rowHeader td {
-      font-weight: bold;
-      color: #FFFFFF;
-      background-color: #F07800;
-      text-align: center;
-      white-space: nowrap;
-      padding: 3px 10px 3px 10px;
-    }
-    .row td, .rowAlt td {
-      color: #000000;
-      padding: 3px;
-    }
-    .row td {
-      background-color: #F0F0F0;
-    }
-    .rowAlt td {
-      background-color: #DCDCDC;
-    }
-    .copyTitle {
-      color: #804000;
-      font-size: 10px;
-    }
+    ${css}
   </style>
 </head>
 
@@ -101,17 +57,19 @@
     </tr>
   </table>
 
-  <h2><@fmt key="reports.statistics"/></h2>
+  <#if individualChartExists>
+  <h2><@fmt key="reports.individualCharts"/></h2>
   <table cellspacing="5">
     <#assign col = 1/>
     <#list points as point>
+      <#if point.individualChart>
       <#assign col = col + 1/>
       <#if col == 2><#assign col = 0/></#if>
-      <#if col == 0><tr></#if>
+      <#if col == 0><tr class="statsRow"></#if>
       
       <td class="stats">
         <table>
-          <tr><td colspan="2" class="pointName">${point.name}</td></tr>
+          <tr><td colspan="2" class="smallTitle">${point.name}</td></tr>
           <tr>
             <td class="label"><@fmt key="reports.dataType"/></td>
             <td>${point.dataTypeDescription}</td>
@@ -134,6 +92,10 @@
             <tr>
               <td class="label"><@fmt key="common.stats.avg"/></td>
               <td><#if point.analogAverage??>${point.analogAverage}<#else>--</#if></td>
+            </tr>
+            <tr>
+              <td class="label"><@fmt key="common.stats.integral"/></td>
+              <td><#if point.analogIntegral??>${point.analogIntegral}<#else>--</#if></td>
             </tr>
             <tr>
               <td class="label"><@fmt key="common.stats.sum"/></td>
@@ -178,13 +140,122 @@
       </td>
       
       <#if col == 1></tr></#if>
+      </#if>
     </#list>
     <#if col < 1></tr></#if>
   </table>
+  </#if>
   
   <#if chartName??>
     <h2><@fmt key="reports.consolidated"/></h2>
     <img src="${inline}${chartName}"/>
+  </#if>
+  
+  <#if individualChartExists>
+  <h2><@fmt key="reports.statistics"/></h2>
+  <h3><@fmt key="reports.numericPoints"/></h3>
+  <table>
+  	<tr class="rowHeader">
+  		<td><@fmt key="reports.pointName"/></td>
+  		<td><@fmt key="common.stats.min"/></td>
+  		<td><@fmt key="common.stats.max"/></td>
+  		<td><@fmt key="common.stats.avg"/></td>
+  		<td><@fmt key="common.stats.integral"/></td>
+  		<td><@fmt key="common.stats.sum"/></td>
+  		<td><@fmt key="common.stats.count"/></td>
+  	</tr>
+    <#assign row = 1/>
+    <#assign hasNumeric = false />
+    <#list points as point>
+      <#if point.dataType == NUMERIC>
+      <#assign row = row + 1/>
+      <#if row == 2><#assign row = 0/></#if>
+      <#if row == 0><tr class="row"></#if>
+      <#if row == 1><tr class="rowAlt"></#if>
+      
+      <td>${point.name}</td>
+      <td><#if point.analogMinimum??>${point.analogMinimum}<#else>--</#if></td>
+      <td><#if point.analogMaximum??>${point.analogMaximum}<#else>--</#if></td>
+      <td><#if point.analogAverage??>${point.analogAverage}<#else>--</#if></td>
+      <td><#if point.analogIntegral??>${point.analogIntegral}<#else>--</#if></td>
+      <td>${point.analogSum}</td>
+      <td>${point.analogCount}</td>
+      
+      </tr>
+      <#assign hasNumeric = true />
+      </#if>
+    </#list>
+    <#if !hasNumeric>
+    	<td colspan="7"><@fmt key="reports.numeric.empty"/></td>
+    </#if>
+  </table>
+  
+  <h3><@fmt key="reports.multistatePoints"/></h3>
+  <table>
+  	<tr class="rowHeader">
+  		<td><@fmt key="reports.pointName"/></td>
+  		<td><@fmt key="common.stats.value"/></td>
+  		<td><@fmt key="common.stats.starts"/></td>
+  		<td><@fmt key="common.stats.runtime"/></td>
+  	</tr>
+    <#assign row = 1/>
+    <#assign nameRow = 1/>
+    <#assign hasMultistate = false />
+    <#list points as point>
+    <#if point.dataType == BINARY || point.dataType == MULTISTATE>
+    
+      <#assign nameRow = nameRow + 1/>
+	  <#if nameRow == 2><#assign nameRow = 0/></#if>
+	  <#if nameRow == 0><#assign nameRowClass = "nameRow"/></#if>
+	  <#if nameRow == 1><#assign nameRowClass = "nameRowAlt"/></#if>
+      <td rowspan="${point.startsAndRuntimes?size+1}" class="${nameRowClass}">${point.name}</td>
+      
+      <#list point.startsAndRuntimes as sar>
+	      <#assign row = row + 1/>
+	      <#if row == 2><#assign row = 0/></#if>
+	      <#if row == 0><tr class="row"></#if>
+	      <#if row == 1><tr class="rowAlt"></#if>
+	      
+	      <td>${sar.value}</td>
+	      <td>${sar.starts}</td>
+	      <td>${sar.runtime}</td>
+	      
+	      </tr>
+      </#list>
+      <#assign hasMultistate = true />
+    </#if>
+    </#list>
+    <#if !hasMultistate>
+    	<td colspan="4"><@fmt key="reports.multistate.empty"/></td>
+    </#if>
+  </table>
+  
+  <h3><@fmt key="reports.alphanumericPoints"/></h3>
+  <table>
+  	<tr class="rowHeader">
+  		<td><@fmt key="reports.pointName"/></td>
+  		<td><@fmt key="common.stats.count"/></td>
+  	</tr>
+    <#assign row = 1/>
+    <#assign hasAlphanumeric = false />
+    <#list points as point>
+      <#if point.dataType == ALPHANUMERIC || point.dataType == IMAGE>
+      <#assign row = row + 1/>
+      <#if row == 2><#assign row = 0/></#if>
+      <#if row == 0><tr class="row"></#if>
+      <#if row == 1><tr class="rowAlt"></#if>
+      
+        <td>${point.name}</td>
+        <td>${point.valueChangeCount}</td>
+        
+      </tr>
+      <#assign hasAlphanumeric = true />
+      </#if>
+    </#list>
+    <#if !hasAlphanumeric>
+    	<td colspan="2"><@fmt key="reports.alphanumeric.empty"/></td>
+    </#if>
+  </table>
   </#if>
   
   <#if includeEvents>

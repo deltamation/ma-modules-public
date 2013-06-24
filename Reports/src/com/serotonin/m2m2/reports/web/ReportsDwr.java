@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.reports.web;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +25,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dwr.ModuleDwr;
+import com.serotonin.m2m2.web.dwr.beans.DataPointBean;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.timer.CronTimerTrigger;
@@ -41,12 +43,34 @@ public class ReportsDwr extends ModuleDwr {
         User user = Common.getUser();
 
         response.addData("points", getReadablePoints());
+        response.addData("datasources", Common.runtimeManager.getDataSources());
         response.addData("mailingLists", new MailingListDao().getMailingLists());
         response.addData("users", new UserDao().getUsers());
         response.addData("reports", reportDao.getReports(user.getId()));
         response.addData("instances", getReportInstances(user));
 
         return response;
+    }
+    
+    @DwrPermission(user = true)
+    public List<DataPointBean> getPointsForDataSource(int datasourceId) {
+        User user = Common.getUser();
+
+        List<DataPointVO> points = new DataPointDao().getDataPoints(datasourceId, null);
+        if (!Permissions.hasAdmin(user)) {
+            List<DataPointVO> userPoints = new ArrayList<DataPointVO>();
+            for (DataPointVO dp : points) {
+                if (Permissions.hasDataPointReadPermission(user, dp))
+                    userPoints.add(dp);
+            }
+            points = userPoints;
+        }
+
+        List<DataPointBean> result = new ArrayList<DataPointBean>();
+        for (DataPointVO dp : points)
+            result.add(new DataPointBean(dp));
+
+        return result;
     }
 
     @DwrPermission(user = true)
@@ -300,6 +324,7 @@ public class ReportsDwr extends ModuleDwr {
             rp.setPointId(dp.getId());
             rp.setColour(dp.getChartColour());
             rp.setConsolidatedChart(true);
+            rp.setIndividualChart(true);
             rp.setPlotType(dp.getPlotType());
             report.getPoints().add(rp);
         }

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jfree.data.time.TimeSeries;
@@ -35,6 +36,7 @@ import com.serotonin.m2m2.reports.ReportDao;
 import com.serotonin.m2m2.reports.vo.ReportInstance;
 import com.serotonin.m2m2.reports.vo.ReportVO;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.util.chart.DiscreteTimeSeries;
 import com.serotonin.m2m2.util.chart.ImageChartUtils;
@@ -74,12 +76,12 @@ public class ReportChartCreator {
     /**
      * This image width is specifically chosen such that the report will print on a single page width in landscape.
      */
-    private static final int IMAGE_WIDTH = 930;
-    private static final int IMAGE_HEIGHT = 400;
+    private static final int IMAGE_WIDTH = 960;
+    private static final int IMAGE_HEIGHT = 600;
     public static final String IMAGE_CONTENT_ID = "reportChart.png";
 
-    public static final int POINT_IMAGE_WIDTH = 440;
-    public static final int POINT_IMAGE_HEIGHT = 250; // 340
+    public static final int POINT_IMAGE_WIDTH = 480;
+    public static final int POINT_IMAGE_HEIGHT = 360; // 340
 
     String inlinePrefix;
     private String html;
@@ -91,6 +93,7 @@ public class ReportChartCreator {
     private File eventFile;
     private File commentFile;
     private List<PointStatistics> pointStatistics;
+    private boolean emptyReport = true;
 
     final Translations translations;
     final TimeZone timeZone;
@@ -141,7 +144,20 @@ public class ReportChartCreator {
         model.put("MULTISTATE", DataTypes.MULTISTATE);
         model.put("NUMERIC", DataTypes.NUMERIC);
         model.put("IMAGE", DataTypes.IMAGE);
+        
+        String css;
+        try {
+            File cssFile = new File(Common.MA_HOME + "/overrides/web/modules/reports/web/reports.css");
+            if (!cssFile.exists())
+                cssFile = new File(Common.MA_HOME + "/web/modules/reports/web/reports.css");
+            css = FileUtils.readFileToString(cssFile);
+        } catch (IOException e) {
+            css = "";
+        }
+        model.put("css", css);
 
+        boolean individualChartExists = false;
+        
         // Create the individual point charts
         for (PointStatistics pointStat : pointStatistics) {
             PointTimeSeriesCollection ptsc = new PointTimeSeriesCollection(timeZone);
@@ -151,18 +167,29 @@ public class ReportChartCreator {
             else if (pointStat.getDiscreteTimeSeries() != null)
                 ptsc.addDiscreteTimeSeries(pointStat.getDiscreteTimeSeries().plainCopy());
 
-            if (ptsc.hasData()) {
-                if (inlinePrefix != null)
-                    model.put("chartName", inlinePrefix + pointStat.getChartName());
+            if (ptsc.hasData() && pointStat.isIndividualChart()) {
+                individualChartExists = true;
+                // Doesn't appear to be needed
+                // Causes consolidated chart to appear in emails even if no charts are ticked
+                //if (inlinePrefix != null)
+                //    model.put("chartName", inlinePrefix + pointStat.getChartName());
                 pointStat.setImageData(ImageChartUtils.getChartData(ptsc, POINT_IMAGE_WIDTH, POINT_IMAGE_HEIGHT,
                         reportInstance.getReportStartTime(), reportInstance.getReportEndTime()));
             }
         }
+        
+        if (individualChartExists) {
+            emptyReport = false;
+        }
+        
+        model.put("individualChartExists", individualChartExists);
 
+        // create the consolidated chart
         PointTimeSeriesCollection ptsc = handler.getPointTimeSeriesCollection();
         if (ptsc.hasData()) {
-            if (inlinePrefix != null)
+            if (inlinePrefix != null) {
                 model.put("chartName", inlinePrefix + IMAGE_CONTENT_ID);
+            }
             else {
                 chartName = "r" + reportInstance.getId() + ".png";
                 // The path comes from the servlet path definition in web.xml.
@@ -171,6 +198,8 @@ public class ReportChartCreator {
 
             imageData = ImageChartUtils.getChartData(ptsc, true, IMAGE_WIDTH, IMAGE_HEIGHT,
                     reportInstance.getReportStartTime(), reportInstance.getReportEndTime());
+            
+            emptyReport = false;
         }
 
         List<EventInstance> events = null;
@@ -178,10 +207,14 @@ public class ReportChartCreator {
             events = reportDao.getReportInstanceEvents(reportInstance.getId());
             model.put("includeEvents", true);
             model.put("events", events);
+            
+            if (!events.isEmpty()) {
+                emptyReport = false;
+            }
         }
         else
             model.put("includeEvents", false);
-
+        
         List<ReportUserComment> comments = null;
         if (reportInstance.isIncludeUserComments()) {
             comments = reportDao.getReportInstanceUserComments(reportInstance.getId());
@@ -192,6 +225,10 @@ public class ReportChartCreator {
             for (ReportUserComment c : comments) {
                 if (c.getCommentType() == UserComment.TYPE_POINT)
                     pointComments.add(c);
+            }
+            
+            if (!pointComments.isEmpty()) {
+                emptyReport = false;
             }
 
             model.put("includeUserComments", true);
@@ -284,6 +321,10 @@ public class ReportChartCreator {
     public List<PointStatistics> getPointStatistics() {
         return pointStatistics;
     }
+    
+    public boolean isEmptyReport() {
+        return emptyReport;
+    }
 
     public class PointStatistics {
         private final int reportPointId;
@@ -298,6 +339,7 @@ public class ReportChartCreator {
         private NumericTimeSeries numericTimeSeries;
         private DiscreteTimeSeries discreteTimeSeries;
         private byte[] imageData;
+        boolean individualChart;
 
         public PointStatistics(int reportPointId) {
             this.reportPointId = reportPointId;
@@ -409,6 +451,13 @@ public class ReportChartCreator {
                 return null;
             return textRenderer.getText(d, TextRenderer.HINT_SPECIFIC);
         }
+        
+        public String getAnalogIntegral() {
+            Double d = ((AnalogStatistics) stats).getIntegral();
+            if (d == null)
+                return null;
+            return textRenderer.getText(d, TextRenderer.HINT_SPECIFIC);
+        }
 
         public String getAnalogSum() {
             return textRenderer.getText(((AnalogStatistics) stats).getSum(), TextRenderer.HINT_SPECIFIC);
@@ -442,6 +491,14 @@ public class ReportChartCreator {
 
         public String getChartName() {
             return "reportPointChart" + reportPointId + ".png";
+        }
+        
+        public boolean isIndividualChart() {
+            return individualChart;
+        }
+
+        public void setIndividualChart(boolean individualChart) {
+            this.individualChart = individualChart;
         }
     }
 
@@ -513,15 +570,16 @@ public class ReportChartCreator {
         @Override
         public void startPoint(ExportPointInfo pointInfo) {
             donePoint();
-
+            
             point = new PointStatistics(pointInfo.getReportPointId());
             point.setName(pointInfo.getExtendedName());
             point.setDataType(pointInfo.getDataType());
             point.setDataTypeDescription(DataTypes.getDataTypeMessage(pointInfo.getDataType()).translate(translations));
             point.setTextRenderer(pointInfo.getTextRenderer());
-            if (pointInfo.getStartValue() != null)
-                point.setStartValue(pointInfo.getTextRenderer().getText(pointInfo.getStartValue(),
-                        TextRenderer.HINT_SPECIFIC));
+            point.setIndividualChart(pointInfo.isIndividualChart());
+            DataValue startValue = pointInfo.getStartValue();
+            if (startValue != null)
+                point.setStartValue(pointInfo.getTextRenderer().getText(startValue, TextRenderer.HINT_SPECIFIC));
             pointStatistics.add(point);
 
             Color colour = null;
@@ -593,26 +651,42 @@ public class ReportChartCreator {
             else
                 throw new ShouldNeverHappenException("Unknown point data type: " + pointInfo.getDataType()
                         + " for point " + pointInfo.getReportPointId() + ", name=" + pointInfo.getExtendedName());
-
+            
             if (exportCsvStreamer != null)
                 exportCsvStreamer.startPoint(pointInfo);
+            
+            // add start value to the data series
+            if (startValue != null)
+                pointData(new ExportDataValue(startValue, start));
         }
-
+        
+        private ExportDataValue lastValue = null;
+        
         @Override
         public void pointData(ExportDataValue rdv) {
+            lastValue = rdv;
+            
             if (quantizer != null)
                 quantizer.data(rdv);
-            point.getStats().addValueTime(rdv);
+            if (point != null) {
+                point.getStats().addValueTime(rdv);
+            }
             if (exportCsvStreamer != null)
                 exportCsvStreamer.pointData(rdv);
         }
 
         private void donePoint() {
+            // add end value to the data series
+            if (lastValue != null) {
+                long lastValueEndTime = end > System.currentTimeMillis() ? System.currentTimeMillis() : end;
+                pointData(new ExportDataValue(lastValue.getValue(), lastValueEndTime));
+            }
+            
             if (quantizer != null)
                 quantizer.done();
             if (point != null)
                 // Add in an end value to calculate stats until the end of the report. 
-                point.getStats().done(new PointValueTime(0D, end));
+                point.getStats().done(null);
         }
 
         @Override
