@@ -40,6 +40,8 @@ abstract public class ChangeTypeVO implements Serializable, JsonSerializable, Ch
         public static final int RANDOM_MULTISTATE = 8;
         public static final int ANALOG_ATTRACTOR = 9;
         public static final int TIMESTAMP = 10;
+        public static final int TIMESTAMP_MILLISEC = 11;
+        public static final int TIMESTAMP_MULTISTATE = 12;
     }
 
     public static final ExportCodes CHANGE_TYPE_CODES = new ExportCodes();
@@ -56,7 +58,8 @@ abstract public class ChangeTypeVO implements Serializable, JsonSerializable, Ch
         CHANGE_TYPE_CODES.addElement(Types.RANDOM_MULTISTATE, "RANDOM_MULTISTATE", "dsEdit.virtual.changeType.random");
         CHANGE_TYPE_CODES.addElement(Types.ANALOG_ATTRACTOR, "ANALOG_ATTRACTOR", "dsEdit.virtual.changeType.attractor");
         CHANGE_TYPE_CODES.addElement(Types.TIMESTAMP, "TIMESTAMP", "dsEdit.virtual.changeType.timestamp");
-        
+        CHANGE_TYPE_CODES.addElement(Types.TIMESTAMP_MILLISEC, "TIMESTAMP_MILLISEC", "dsEdit.virtual.changeType.timestamp.millisec");
+        CHANGE_TYPE_CODES.addElement(Types.TIMESTAMP_MULTISTATE, "TIMESTAMP_MULTISTATE", "dsEdit.virtual.changeType.timestamp");
     }
 
     public static IntMessagePair[] getChangeTypes(int dataTypeId) {
@@ -69,14 +72,16 @@ abstract public class ChangeTypeVO implements Serializable, JsonSerializable, Ch
             return new IntMessagePair[] {
                     new IntMessagePair(Types.INCREMENT_MULTISTATE, IncrementMultistateChangeVO.KEY),
                     new IntMessagePair(Types.NO_CHANGE, NoChangeVO.KEY),
-                    new IntMessagePair(Types.RANDOM_MULTISTATE, RandomMultistateChangeVO.KEY) };
+                    new IntMessagePair(Types.RANDOM_MULTISTATE, RandomMultistateChangeVO.KEY),
+                    new IntMessagePair(Types.TIMESTAMP_MULTISTATE, TimestampMultistateChangeVO.KEY)};
         case DataTypes.NUMERIC:
             return new IntMessagePair[] { new IntMessagePair(Types.BROWNIAN, BrownianChangeVO.KEY),
                     new IntMessagePair(Types.INCREMENT_ANALOG, IncrementAnalogChangeVO.KEY),
                     new IntMessagePair(Types.NO_CHANGE, NoChangeVO.KEY),
                     new IntMessagePair(Types.RANDOM_ANALOG, RandomAnalogChangeVO.KEY),
                     new IntMessagePair(Types.ANALOG_ATTRACTOR, AnalogAttractorChangeVO.KEY),
-                    new IntMessagePair(Types.TIMESTAMP, TimestampChangeVO.KEY), };
+                    new IntMessagePair(Types.TIMESTAMP, TimestampChangeVO.KEY),
+                    new IntMessagePair(Types.TIMESTAMP_MILLISEC, TimestampMillisecChangeVO.KEY)};
         case DataTypes.ALPHANUMERIC:
             return new IntMessagePair[] { new IntMessagePair(Types.NO_CHANGE, NoChangeVO.KEY), };
         }

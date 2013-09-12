@@ -10,19 +10,19 @@ import java.io.ObjectOutputStream;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.virtual.rt.ChangeTypeRT;
-import com.serotonin.m2m2.virtual.rt.TimestampChangeRT;
+import com.serotonin.m2m2.virtual.rt.TimestampMillisecChangeRT;
 
 /**
  * Copyright (C) 2013 Deltamation Software. All Rights Reserved.
  * @author Terry Packer
  *
  */
-public class TimestampChangeVO extends ChangeTypeVO {
-    public static final TranslatableMessage KEY = new TranslatableMessage("dsEdit.virtual.changeType.timestamp");
+public class TimestampMillisecChangeVO extends ChangeTypeVO {
+    public static final TranslatableMessage KEY = new TranslatableMessage("dsEdit.virtual.changeType.timestamp.millisec");
 
     @Override
     public int typeId() {
-        return Types.TIMESTAMP;
+        return Types.TIMESTAMP_MILLISEC;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class TimestampChangeVO extends ChangeTypeVO {
 
     @Override
     public ChangeTypeRT createRuntime() {
-        return new TimestampChangeRT();
+        return new TimestampMillisecChangeRT();
     }
 
     //

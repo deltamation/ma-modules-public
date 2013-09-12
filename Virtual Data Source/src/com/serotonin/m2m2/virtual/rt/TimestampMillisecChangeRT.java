@@ -12,10 +12,10 @@ import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
  * @author Terry Packer
  *
  */
-public class TimestampChangeRT extends ChangeTypeRT {
+public class TimestampMillisecChangeRT extends ChangeTypeRT {
     @Override
     public DataValue change(DataValue currentValue) {
         // Will convert a long to a double... (Multistate only works for Integers)
-        return new NumericValue(System.currentTimeMillis() / 1000.0);
+        return new NumericValue(System.currentTimeMillis());
     }
 }

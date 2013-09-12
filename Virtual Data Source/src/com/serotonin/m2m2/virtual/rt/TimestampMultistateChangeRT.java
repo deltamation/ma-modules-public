@@ -5,17 +5,16 @@
 package com.serotonin.m2m2.virtual.rt;
 
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
+import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 
 /**
  * Copyright (C) 2013 Deltamation Software. All Rights Reserved.
  * @author Terry Packer
  *
  */
-public class TimestampChangeRT extends ChangeTypeRT {
+public class TimestampMultistateChangeRT extends ChangeTypeRT {
     @Override
     public DataValue change(DataValue currentValue) {
-        // Will convert a long to a double... (Multistate only works for Integers)
-        return new NumericValue(System.currentTimeMillis() / 1000.0);
+        return new MultistateValue((int) (System.currentTimeMillis() / 1000));
     }
 }

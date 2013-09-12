@@ -15,6 +15,8 @@ import com.serotonin.m2m2.virtual.vo.RandomAnalogChangeVO;
 import com.serotonin.m2m2.virtual.vo.RandomBooleanChangeVO;
 import com.serotonin.m2m2.virtual.vo.RandomMultistateChangeVO;
 import com.serotonin.m2m2.virtual.vo.TimestampChangeVO;
+import com.serotonin.m2m2.virtual.vo.TimestampMillisecChangeVO;
+import com.serotonin.m2m2.virtual.vo.TimestampMultistateChangeVO;
 
 public class VirtualDwrConversionDefinition extends DwrConversionDefinition {
     @Override
@@ -29,5 +31,7 @@ public class VirtualDwrConversionDefinition extends DwrConversionDefinition {
         addConversion(RandomBooleanChangeVO.class);
         addConversion(RandomMultistateChangeVO.class);
         addConversion(TimestampChangeVO.class);
+        addConversion(TimestampMillisecChangeVO.class);
+        addConversion(TimestampMultistateChangeVO.class);
     }
 }

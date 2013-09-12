@@ -385,12 +385,23 @@
   </tbody>
 
   <%--
-      Timestamp, change type 10
+      TIMESTAMP, change type 10
       No settings
   --%>
   <tbody id="divCH10" style="display: none;">
   </tbody>
 
+  <%--
+      TIMESTAMP_MILLISEC, change type 11
+      No settings
+  --%>
+  <tbody id="divCH11" style="display: none;">
+  </tbody>
 
-
+  <%--
+      TIMESTAMP_MULTISTATE, change type 12
+      No settings
+  --%>
+  <tbody id="divCH12" style="display: none;">
+  </tbody>
 </tag:pointList>
