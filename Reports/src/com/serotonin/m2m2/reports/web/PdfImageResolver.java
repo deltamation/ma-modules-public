@@ -56,7 +56,7 @@ class PdfImageResolver extends NaiveUserAgent {
                 
                 if (image != null) {
                     scaleToOutputResolution(image);
-                    ir = new ImageResource(new ITextFSImage(image));
+                    ir = new ImageResource(uri, new ITextFSImage(image));
                     this._imageCache.put(uri, ir);
                 }
             } catch (Exception e) {
@@ -64,7 +64,7 @@ class PdfImageResolver extends NaiveUserAgent {
         }
         
         if (ir == null) {
-            ir = new ImageResource(null);
+            ir = new ImageResource(uri, null);
         }
         
         return ir;

@@ -4,7 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Core"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/M2M2 Core"/>
-	<classpathentry kind="lib" path="lib/iText-2.0.8.jar"/>
-	<classpathentry kind="lib" path="lib/core-renderer.jar"/>
+	<classpathentry kind="lib" path="lib/core-renderer-R8-final.jar"/>
+	<classpathentry kind="lib" path="lib/itext-2.1.7.js2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
