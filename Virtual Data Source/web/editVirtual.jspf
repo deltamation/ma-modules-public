@@ -383,4 +383,14 @@
       <td class="formField"><input type="text" id="analogAttractorChange.startValue" /></td>
     </tr>
   </tbody>
+
+  <%--
+      Timestamp, change type 10
+      No settings
+  --%>
+  <tbody id="divCH10" style="display: none;">
+  </tbody>
+
+
+
 </tag:pointList>

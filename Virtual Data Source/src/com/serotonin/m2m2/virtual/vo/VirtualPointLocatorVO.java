@@ -67,6 +67,8 @@ public class VirtualPointLocatorVO extends AbstractPointLocatorVO implements Jso
             return randomMultistateChange;
         if (changeTypeId == ChangeTypeVO.Types.ANALOG_ATTRACTOR)
             return analogAttractorChange;
+        if(changeTypeId == ChangeTypeVO.Types.TIMESTAMP)
+            return timestampChange;
 
         LOG.error("Failed to resolve changeTypeId " + changeTypeId + " for virtual point locator");
         return alternateBooleanChange;
@@ -182,7 +184,7 @@ public class VirtualPointLocatorVO extends AbstractPointLocatorVO implements Jso
             if (StringUtils.isBlank(analogAttractorChange.getStartValue()))
                 response.addContextualMessage("analogAttractorChange.startValue", "validate.required");
         }
-
+        else if (changeTypeId == ChangeTypeVO.Types.TIMESTAMP) {}
         else
             response.addContextualMessage("changeTypeId", "validate.invalidChoice");
 
@@ -214,6 +216,7 @@ public class VirtualPointLocatorVO extends AbstractPointLocatorVO implements Jso
     private RandomBooleanChangeVO randomBooleanChange = new RandomBooleanChangeVO();
     private RandomMultistateChangeVO randomMultistateChange = new RandomMultistateChangeVO();
     private AnalogAttractorChangeVO analogAttractorChange = new AnalogAttractorChangeVO();
+    private TimestampChangeVO timestampChange = new TimestampChangeVO();
 
     public int getChangeTypeId() {
         return changeTypeId;
@@ -340,7 +343,7 @@ public class VirtualPointLocatorVO extends AbstractPointLocatorVO implements Jso
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 1;
+    private static final int version = 2;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -356,13 +359,14 @@ public class VirtualPointLocatorVO extends AbstractPointLocatorVO implements Jso
         out.writeObject(randomBooleanChange);
         out.writeObject(randomMultistateChange);
         out.writeObject(analogAttractorChange);
+        out.writeObject(timestampChange);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
 
         // Switch on the version of the class so that version changes can be elegantly handled.
-        if (ver == 1) {
+        if (ver >= 1) {
             dataTypeId = in.readInt();
             changeTypeId = in.readInt();
             settable = in.readBoolean();
@@ -375,6 +379,10 @@ public class VirtualPointLocatorVO extends AbstractPointLocatorVO implements Jso
             randomBooleanChange = (RandomBooleanChangeVO) in.readObject();
             randomMultistateChange = (RandomMultistateChangeVO) in.readObject();
             analogAttractorChange = (AnalogAttractorChangeVO) in.readObject();
+        }
+        
+        if(ver >= 2){
+            timestampChange = (TimestampChangeVO)in.readObject();
         }
     }
 
