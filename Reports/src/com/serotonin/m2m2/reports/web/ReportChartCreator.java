@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import javax.measure.converter.UnitConverter;
+import javax.measure.unit.SI;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,6 +40,7 @@ import com.serotonin.m2m2.reports.vo.ReportInstance;
 import com.serotonin.m2m2.reports.vo.ReportVO;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.util.chart.DiscreteTimeSeries;
 import com.serotonin.m2m2.util.chart.ImageChartUtils;
@@ -53,6 +57,8 @@ import com.serotonin.m2m2.view.stats.StartsAndRuntime;
 import com.serotonin.m2m2.view.stats.StartsAndRuntimeList;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 import com.serotonin.m2m2.view.stats.ValueChangeCounter;
+import com.serotonin.m2m2.view.text.AnalogRenderer;
+import com.serotonin.m2m2.view.text.ConvertingRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.export.EventCsvStreamer;
@@ -456,6 +462,18 @@ public class ReportChartCreator {
             Double d = ((AnalogStatistics) stats).getIntegral();
             if (d == null)
                 return null;
+            
+            // TODO temporary work around, use point integralRenderer
+            AnalogRenderer integralRenderer = new AnalogRenderer();
+            if (textRenderer instanceof ConvertingRenderer) {
+                ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
+                integralRenderer.setUnit(cr.getUnit().times(SI.SECOND));
+                integralRenderer.setRenderedUnit(cr.getUnit().times(SI.SECOND));
+                integralRenderer.setUseUnitAsSuffix(true);
+                integralRenderer.setFormat("0.0");
+                return integralRenderer.getText(d, TextRenderer.HINT_SPECIFIC);
+            }
+            
             return textRenderer.getText(d, TextRenderer.HINT_SPECIFIC);
         }
 
@@ -666,13 +684,23 @@ public class ReportChartCreator {
         public void pointData(ExportDataValue rdv) {
             lastValue = rdv;
             
-            if (quantizer != null)
-                quantizer.data(rdv);
             if (point != null) {
                 point.getStats().addValueTime(rdv);
             }
             if (exportCsvStreamer != null)
                 exportCsvStreamer.pointData(rdv);
+
+            TextRenderer tr = point.getTextRenderer();
+            ConvertingRenderer cr = (ConvertingRenderer) tr;
+            if (point.dataType == DataTypes.NUMERIC && tr instanceof ConvertingRenderer) {
+                double dblValue = rdv.getValue().getDoubleValue();
+                UnitConverter converter = cr.getUnit().getConverterTo(cr.getRenderedUnit());
+                dblValue = converter.convert(dblValue);
+                rdv = new ExportDataValue(new NumericValue(dblValue), rdv.getTime());
+            }
+            
+            if (quantizer != null)
+                quantizer.data(rdv);
         }
 
         private void donePoint() {

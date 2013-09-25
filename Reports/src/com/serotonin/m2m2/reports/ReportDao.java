@@ -10,6 +10,8 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.measure.converter.UnitConverter;
+
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -30,6 +32,7 @@ import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.view.text.ConvertingRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.UserComment;
@@ -445,6 +448,14 @@ public class ReportDao extends BaseDao {
                             ExportDataValue edv = new ExportDataValue();
                             switch (dataType) {
                             case (DataTypes.NUMERIC):
+                                //double dblValue = rs.getDouble(1);
+                                //TextRenderer tr = point.getTextRenderer();
+                                //ConvertingRenderer cr = (ConvertingRenderer) tr;
+                                //if (tr instanceof ConvertingRenderer) {
+                                //    UnitConverter converter = cr.getUnit().getConverterTo(cr.getRenderedUnit());
+                                //    dblValue = converter.convert(dblValue);
+                                //}
+                                //edv.setValue(new NumericValue(dblValue));
                                 edv.setValue(new NumericValue(rs.getDouble(1)));
                                 break;
                             case (DataTypes.BINARY):
